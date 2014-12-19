@@ -1,5 +1,5 @@
 """
-PyQuadTree - A pure Python QuadTree spatial index for GIS or rendering usage.
+PyOctaTree - A pure Python QuadTree spatial index for GIS or rendering usage.
 Karim Bahgat, 2014
 
 Based on Matt Rasmussen's original code: https://github.com/mdrasmus/compbio/blob/master/rasmus/quadtree.py
@@ -38,19 +38,20 @@ if PYTHON3:
     xrange = range
 
 #INTERNAL USE ONLY
-def _normalize_rect(rect):
-    x1, y1, x2, y2 = rect
+def _normalize_cube(rect):
+    x1, y1, z1, x2, y2, z2 = rect
     if x1 > x2:
         x1, x2 = x2, x1
     if y1 > y2:
         y1, y2 = y2, y1
-    return (x1, y1, x2, y2)
+    if z1 > z2:
+        z1, z2 = z2, z1
+    return (x1, y1, z1, x2, y2, z2)
 
 class _QuadNode:    
     def __init__(self, item, rect):
         self.item = item
         self.rect = rect
-        self.id = -1
         
 class _Index:
     """
@@ -66,8 +67,8 @@ class _Index:
     | height | how far from the ycenter that the quadtree should look when keeping track
 
     """
-    MAX = 20
-    MAX_DEPTH = 3
+    MAX = 10
+    MAX_DEPTH = 20
     def __init__(self, x, y, width, height, depth = 0):
         self.nodes = []
         self.children = []
@@ -95,11 +96,8 @@ class _Index:
         rect = _normalize_rect(bbox)
         if len(self.children) == 0:
             node = _QuadNode(item, rect)
-            # TODO: set proper ID
-            node.id = -2
             self.nodes.append(node)
             
-            # rewrite for different 
             if len(self.nodes) > self.MAX and self.depth < self.MAX_DEPTH:
                 self._split()
         else:
@@ -154,8 +152,6 @@ class _Index:
         if ((rect[0] <= self.center[0] and rect[2] > self.center[0]) and
             (rect[1] <= self.center[1] and rect[3] > self.center[1])):
             node = _QuadNode(item, rect)
-            # TODO: set properly according to position
-            node.id = -2	
             self.nodes.append(node)
         else:
             # try to insert into children
@@ -194,7 +190,6 @@ class _Index:
         self.nodes = []
         for node in nodes:
             self._insert_into_children(node.item, node.rect)
-        #reevaluate bnumbers!
 
 #USER CLASSES AND FUNCTIONS 
 class Index(_Index):

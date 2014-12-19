@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import pyqtree
 
 np.random.seed(5)
-x = np.arange(1, 101)
+
+# Generating data - can also import
+x = np.arange(1, 101) + 25
 y = 20 + 3 * x + np.random.normal(0, 60, 100)
 
 spindex = pyqtree.Index(bbox=[0,-100,100,400])
@@ -35,20 +37,23 @@ def drawbox(x, y, x1, y1, color):
 
 def drawtree(node):
 	#print(len(node.children), len(node.nodes))
+	nodes = []
 	if len(node.children) == 4: 
 		for child in node.children:
 			plt.plot([child.center[0] - child.width/2, child.center[0] + child.width/2], [child.center[1], child.center[1]], 'k-')
 			plt.plot([child.center[0], child.center[0]], [child.center[1] - child.height/2, child.center[1] + child.height/2], 'k-')
 			drawbox(child.center[0] - child.width/2, child.center[1] - child.height/2, child.center[0] + child.width/2, child.center[1] + child.height/2, 'r-')
-			drawtree(child)
+			nodes = nodes + drawtree(child)
 	else:
 		for elem in node.nodes:
 			#print(elem.item.bbox)
-			pass
+			nodes.append(elem.id)
+			#pass
+	return nodes
 
 plt.plot(x, y, "o")
 
-drawtree(spindex)
+nodes = drawtree(spindex)
 # Boundaries -- not necessary
 #plt.plot([spindex.center[0] - spindex.width, spindex.center[0] - spindex.width], [spindex.center[1] - spindex.height, spindex.center[1] + spindex.height], color='k', linestyle='-', linewidth=2)
 #plt.plot([spindex.center[0] + spindex.width, spindex.center[0] + spindex.width], [spindex.center[1] - spindex.height, spindex.center[1] + spindex.height], color='k', linestyle='-', linewidth=2)
